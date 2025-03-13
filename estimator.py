@@ -30,9 +30,14 @@ if __name__ == '__main__':
     log_prefix = "Main Estimator"
     logger.info(log_prefix, "Starting estimator and initializing logger.")
 
+    logger.info(log_prefix, "Initializing data handler.")
+    data_handler = DataHandler(logger)
+    
     logger.info(log_prefix, "Reading the data.")
     
-    mass_thick, elasticity = read_manual_data()
+    mass_thick, elasticity = data_handler.read_manual_data()
+
+    print("Standard Deviation of " + target_name + " is: " + str(data_handler.get_data_std(mass_thick, target_name)))
 
     logger.info(log_prefix, "Creating Model Predictor.")
     ml_pred = MLPredictor(logger)
@@ -60,7 +65,7 @@ if __name__ == '__main__':
         y_test = y_test.to_numpy().reshape(-1,1).ravel()
 
         score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)
-        print("MAE is: " + str(score))
+        print("MAE is: " + str(round(score,3)))
 
 
         curr_mae = score
