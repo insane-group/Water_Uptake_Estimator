@@ -1,4 +1,5 @@
 import logging
+import argparse
 import pandas as pd
 from datetime import datetime
 from matplotlib import pyplot as plt
@@ -11,6 +12,18 @@ from logger.logger import Logger
 
 if __name__ == '__main__':
     
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-m', '--model',      help='Define the type of regressor to use. on of [linear, xgb]',  default='linear')
+    parser.add_argument('-t', '--target',     help='Define the target variable. on of [mass, thick, all]',      default='mass')
+    parser.add_argument('-e', '--evaluation', help='Define the evaluation metric.',                             default='mae')
+    parsed_args = parser.parse_args()
+
+    model_name = parsed_args.model
+    target_name = parsed_args.target
+    metric_name = parsed_args.evaluation
+
+
     logger = Logger(name = 'estimator_logger', level=logging.DEBUG, output="filestream",
                         fileName=datetime.now().strftime('logfile_%d-%m-%Y-%H-%M-%S.%f')[:-3] + ".log")
 
@@ -46,11 +59,14 @@ if __name__ == '__main__':
         X_test = X_test['hour'].to_numpy().reshape(-1,1)
         y_test = y_test.to_numpy().reshape(-1,1)
 
-        score = ml_pred.run_model(X_train, y_train, X_test, y_test)
+        score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)
+        print("MAE is: " + str(score))
+
 
         curr_mae = score
 
         total_mae += curr_mae
         num_of_splits += 1
 
-    print(f'Mean Absolute Error is {total_mae/num_of_splits}')
+    logger.info(log_prefix, "Mean Absolute Error over all splits:" + str(round(total_mae/num_of_splits,3)))
+    print(f'Mean Absolute Error is {round(total_mae/num_of_splits,3)}')
