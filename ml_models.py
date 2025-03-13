@@ -1,5 +1,13 @@
 import xgboost as xgb
+from sklearn import tree
+from sklearn.svm import SVR
+from sklearn.linear_model import Ridge
+from sklearn.pipeline import make_pipeline
+from sklearn.linear_model import SGDRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+
 
 from logger.logger import Logger
 
@@ -9,7 +17,7 @@ class MLPredictor():
         self.logger = logger
         self.logPrefix = "MLModelPredictor"
     
-    def run_model(self, X_train, y_train, X_test, y_test, metric_name = "mae", model_name = "linear", ):
+    def run_model(self, X_train, y_train, X_test, y_test, metric_name = "mae", model_name = "linear"):
 
         self.logger.info(self.logPrefix, "Initializing ML Model Cycle.")
 
@@ -28,6 +36,27 @@ class MLPredictor():
         if model_name == "linear":
             self.logger.info(self.logPrefix, "Initializing Linear Regression model.")
             self.model = LinearRegression()
+        
+        elif model_name == "ridge":
+            self.logger.info(self.logPrefix, "Initializing Ridge Regression model.")
+            self.model = Ridge()
+
+        elif model_name == "sgd":
+            self.logger.info(self.logPrefix, "Initializing SGD Regression model.")
+            self.model = make_pipeline(StandardScaler(),SGDRegressor())
+
+        elif model_name == "svr":
+            self.logger.info(self.logPrefix, "Initializing SVR model.")
+            self.model = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
+
+        elif model_name == "tree":
+            self.logger.info(self.logPrefix, "Initializing Decision Tree model.")
+            self.model = tree.DecisionTreeRegressor()
+
+        elif model_name == "forest":
+            self.logger.info(self.logPrefix, "Initializing Random Forest model.")
+            self.model = RandomForestRegressor()
+
         elif model_name == "xgb":
             self.logger.info(self.logPrefix, "Initializing XGBoost model.")
             self.model = xgb.XGBRegressor()

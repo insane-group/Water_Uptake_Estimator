@@ -14,9 +14,9 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-m', '--model',      help='Define the type of regressor to use. on of [linear, xgb]',  default='linear')
-    parser.add_argument('-t', '--target',     help='Define the target variable. on of [mass, thick, all]',      default='mass')
-    parser.add_argument('-e', '--evaluation', help='Define the evaluation metric.',                             default='mae')
+    parser.add_argument('-m', '--model',      help='Define the type of regressor to use. on of [linear, ridge, sgd, svr, tree, forest, xgb]',  default='linear')
+    parser.add_argument('-t', '--target',     help='Define the target variable. on of [mass, thick, all]',                                     default='mass')
+    parser.add_argument('-e', '--evaluation', help='Define the evaluation metric.',                                                            default='mae')
     parsed_args = parser.parse_args()
 
     model_name = parsed_args.model
