@@ -86,7 +86,7 @@ class MLPredictor():
             evaluation_score = abs(y_test - y_predict)
             self.logger.info(self.logPrefix, "MAE score is: " + str(evaluation_score))
 
-            return evaluation_score[0][0]
+            return evaluation_score[0]
         
         else:
             self.logger.error(self.logPrefix, "Invalid metric name.")

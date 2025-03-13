@@ -54,10 +54,10 @@ if __name__ == '__main__':
 
 
         X_train = X_train['hour'].to_numpy().reshape(-1,1)
-        y_train = y_train.to_numpy().reshape(-1,1)
+        y_train = y_train.to_numpy().reshape(-1,1).ravel()
 
         X_test = X_test['hour'].to_numpy().reshape(-1,1)
-        y_test = y_test.to_numpy().reshape(-1,1)
+        y_test = y_test.to_numpy().reshape(-1,1).ravel()
 
         score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)
         print("MAE is: " + str(score))
