@@ -15,7 +15,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-m', '--model',      help='Define the type of regressor to use. on of [linear, ridge, sgd, svr, tree, forest, xgb]',  default='linear')
-    parser.add_argument('-t', '--target',     help='Define the target variable. on of [mass, thick, all]',                                     default='mass')
+    parser.add_argument('-t', '--target',     help='Define the target variable. on of [mass, thickness, all]',                                 default='mass')
     parser.add_argument('-e', '--evaluation', help='Define the evaluation metric.',                                                            default='mae')
     parsed_args = parser.parse_args()
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
         X_train, X_test = mass_thick.drop(['mass', 'thickness'], axis=1).iloc[train_index], mass_thick.drop(['mass', 'thickness'], axis=1).iloc[test_index]
 
         logger.info(log_prefix, "Splitting test set.")
-        y_train, y_test = mass_thick['mass'].iloc[train_index], mass_thick['mass'].iloc[test_index]
+        y_train, y_test = mass_thick[target_name].iloc[train_index], mass_thick[target_name].iloc[test_index]
 
 
         X_train = X_train['hour'].to_numpy().reshape(-1,1)
