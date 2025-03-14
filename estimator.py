@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     for train_index, test_index in data_splits: 
 
-        X_train, y_train, X_test, y_test = data_handler.get_train_test(data, train_index, test_index, target_columns, target_name)
+        X_train, y_train, X_test, y_test = data_handler.get_train_test(data, train_index, test_index, target_name, target_columns)
 
         logger.info(log_prefix, "Running test model.")
         real_score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)
