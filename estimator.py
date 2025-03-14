@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
         logger.info(log_prefix, "Running test model.")
         real_score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)
-        print(f"{evaluation_metric} is: {str(round(real_score,3))}")
+        # print(f"{evaluation_metric} is: {str(round(real_score,3))}")
 
 
         logger.info(log_prefix, "Running dummy models.")
@@ -85,11 +85,15 @@ if __name__ == '__main__':
         num_of_splits += 1
 
 
-    logger.info(log_prefix, evaluation_metric + " over all splits for tested regressor is:" + str(round(total_score/num_of_splits,3)))
-    print(f'{evaluation_metric} over all splits for tested regressor is: {round(total_score/num_of_splits,3)}')
+    print(f'{target_name} predictions.')
+
+    logger.info(log_prefix, evaluation_metric + " over all splits for "+ model_name +" is:" + str(round(total_score/num_of_splits,3)))
+    print(f'{evaluation_metric} over all splits for {model_name} is: {round(total_score/num_of_splits,3)}')
 
     logger.info(log_prefix, evaluation_metric + " over all splits for dummy mean regressor is:" + str(round(total_dummy_mean_score/num_of_splits,3)))
     print(f'{evaluation_metric} over all splits for dummy mean regressor is: {round(total_dummy_mean_score/num_of_splits,3)}')
 
     logger.info(log_prefix, evaluation_metric + " over all splits for dummy median regressor is:" + str(round(total_dummy_median_score/num_of_splits,3)))
     print(f'{evaluation_metric} over all splits for dummy median regressor is: {round(total_dummy_median_score/num_of_splits,3)}')
+
+    print("\n\n")
