@@ -2,6 +2,7 @@ import xgboost as xgb
 from sklearn import tree
 from sklearn.svm import SVR
 from sklearn.linear_model import Ridge
+from sklearn.dummy import DummyRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import SGDRegressor
 from sklearn.preprocessing import StandardScaler
@@ -60,6 +61,15 @@ class MLPredictor():
         elif model_name == "xgb":
             self.logger.info(self.logPrefix, "Initializing XGBoost model.")
             self.model = xgb.XGBRegressor()
+
+        elif model_name == "dummy_mean":
+            self.logger.info(self.logPrefix, "Initializing Dummy Mean model.")
+            self.model = DummyRegressor(strategy="mean")
+
+        elif model_name == "dummy_median":
+            self.logger.info(self.logPrefix, "Initializing Dummy Median model.")
+            self.model = DummyRegressor(strategy="median")
+
         else:
             self.logger.error(self.logPrefix, "Invalid model name.")
             print("Provided model name is invalid.")
@@ -83,7 +93,7 @@ class MLPredictor():
 
             self.logger.info(self.logPrefix, "Using MAE metric.")
 
-            evaluation_score = abs(y_test - y_predict)
+            evaluation_score = abs(y_test - y_predict) / len(y_test)
             self.logger.info(self.logPrefix, "MAE score is: " + str(evaluation_score))
 
             return evaluation_score[0]
