@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--evaluation', help='Define the evaluation metric.',                                                            default='mae')
     parsed_args = parser.parse_args()
 
-    model_name = parsed_args.model
+    model_name  = parsed_args.model
     target_name = parsed_args.target
     metric_name = parsed_args.evaluation
 
@@ -48,14 +48,25 @@ if __name__ == '__main__':
     num_of_splits = 0
 
     loo = LeaveOneOut()
-    for train_index, test_index in loo.split(mass_thick): 
+    
+    data = mass_thick
+    data_splits = loo.split(mass_thick)
+    target_columns = ["mass", "thickness"]
+    
+    
+    if target_name == "e1":
+        data = elasticity
+        data_splits = loo.split(elasticity)
+        target_columns = ["e1"]
+
+    for train_index, test_index in data_splits: 
 
 
         logger.info(log_prefix, "Splitting train set.")
-        X_train, X_test = mass_thick.drop(['mass', 'thickness'], axis=1).iloc[train_index], mass_thick.drop(['mass', 'thickness'], axis=1).iloc[test_index]
+        X_train, X_test = data.drop(target_columns, axis=1).iloc[train_index], data.drop(target_columns, axis=1).iloc[test_index]
 
         logger.info(log_prefix, "Splitting test set.")
-        y_train, y_test = mass_thick[target_name].iloc[train_index], mass_thick[target_name].iloc[test_index]
+        y_train, y_test = data[target_name].iloc[train_index], data[target_name].iloc[test_index]
 
 
         X_train = X_train['hour'].to_numpy().reshape(-1,1)
