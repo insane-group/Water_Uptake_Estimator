@@ -61,19 +61,7 @@ if __name__ == '__main__':
 
     for train_index, test_index in data_splits: 
 
-
-        logger.info(log_prefix, "Splitting train set.")
-        X_train, X_test = data.drop(target_columns, axis=1).iloc[train_index], data.drop(target_columns, axis=1).iloc[test_index]
-
-        logger.info(log_prefix, "Splitting test set.")
-        y_train, y_test = data[target_name].iloc[train_index], data[target_name].iloc[test_index]
-
-
-        X_train = X_train['hour'].to_numpy().reshape(-1,1)
-        y_train = y_train.to_numpy().reshape(-1,1).ravel()
-
-        X_test = X_test['hour'].to_numpy().reshape(-1,1)
-        y_test = y_test.to_numpy().reshape(-1,1).ravel()
+        X_train, y_train, X_test, y_test = data_handler.get_train_test(data, train_index, test_index, target_columns, target_name)
 
         logger.info(log_prefix, "Running test model.")
         real_score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)

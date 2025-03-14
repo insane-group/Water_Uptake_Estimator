@@ -25,6 +25,23 @@ class DataHandler():
         
         return pd.DataFrame(data_1), pd.DataFrame(data_2)
 
+    def get_train_test(self, data:pd.DataFrame, train_index, test_index, target_name:str, target_columns:list):
+        
+        self.logger.info(self.logPrefix, "Splitting train set.")
+        X_train, X_test = data.drop(target_columns, axis=1).iloc[train_index], data.drop(target_columns, axis=1).iloc[test_index]
+
+        self.logger.info(self.logPrefix, "Splitting test set.")
+        y_train, y_test = data[target_name].iloc[train_index], data[target_name].iloc[test_index]
+
+
+        X_train = X_train['hour'].to_numpy().reshape(-1,1)
+        y_train = y_train.to_numpy().reshape(-1,1).ravel()
+
+        X_test = X_test['hour'].to_numpy().reshape(-1,1)
+        y_test = y_test.to_numpy().reshape(-1,1).ravel()
+
+        return X_train, y_train, X_test, y_test
+
     def get_data_std(self, data:pd.DataFrame, target_name:str):
     
         self.logger.info(self.logPrefix, "Getting standard deviation for " + target_name + ".")
