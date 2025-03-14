@@ -42,9 +42,9 @@ if __name__ == '__main__':
 
     logger.info(log_prefix, "Starting Leave one Out Process.")
 
-    total_mae = 0
-    total_dummy_mean_mae = 0
-    total_dummy_median_mae = 0
+    total_score = 0
+    total_dummy_mean_score = 0
+    total_dummy_median_score = 0
     num_of_splits = 0
 
     loo = LeaveOneOut()
@@ -59,30 +59,37 @@ if __name__ == '__main__':
         data_splits = loo.split(elasticity)
         target_columns = ["e1"]
 
+    evaluation_metric = "Mean Absolute Error"
+    if metric_name == "r2":
+        evaluation_metric = "R^2"
+    elif metric_name == "mse":
+        evaluation_metric = "Mean Squared Error"
+
     for train_index, test_index in data_splits: 
 
         X_train, y_train, X_test, y_test = data_handler.get_train_test(data, train_index, test_index, target_name, target_columns)
 
         logger.info(log_prefix, "Running test model.")
         real_score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, model_name)
-        print("MAE is: " + str(round(real_score,3)))
+        print(f"{evaluation_metric} is: {str(round(real_score,3))}")
 
 
         logger.info(log_prefix, "Running dummy models.")
         dummy_mean_score   = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, "dummy_mean")
         dummy_median_score = ml_pred.run_model(X_train, y_train, X_test, y_test, metric_name, "dummy_median")
 
-        total_mae              += real_score
-        total_dummy_mean_mae   += dummy_mean_score
-        total_dummy_median_mae += dummy_median_score
+        total_score              += real_score
+        total_dummy_mean_score   += dummy_mean_score
+        total_dummy_median_score += dummy_median_score
 
         num_of_splits += 1
 
-    logger.info(log_prefix, "Mean Absolute Error over all splits for tested regressor is:" + str(round(total_mae/num_of_splits,3)))
-    print(f'Mean Absolute Error over all splits for tested regressor is: {round(total_mae/num_of_splits,3)}')
 
-    logger.info(log_prefix, "Mean Absolute Error over all splits for dummy mean regressor is:" + str(round(total_dummy_mean_mae/num_of_splits,3)))
-    print(f'Mean Absolute Error over all splits for dummy mean regressor is: {round(total_dummy_mean_mae/num_of_splits,3)}')
+    logger.info(log_prefix, evaluation_metric + " over all splits for tested regressor is:" + str(round(total_score/num_of_splits,3)))
+    print(f'{evaluation_metric} over all splits for tested regressor is: {round(total_score/num_of_splits,3)}')
 
-    logger.info(log_prefix, "Mean Absolute Error over all splits for dummy median regressor is:" + str(round(total_dummy_median_mae/num_of_splits,3)))
-    print(f'Mean Absolute Error over all splits for dummy median regressor is: {round(total_dummy_median_mae/num_of_splits,3)}')
+    logger.info(log_prefix, evaluation_metric + " over all splits for dummy mean regressor is:" + str(round(total_dummy_mean_score/num_of_splits,3)))
+    print(f'{evaluation_metric} over all splits for dummy mean regressor is: {round(total_dummy_mean_score/num_of_splits,3)}')
+
+    logger.info(log_prefix, evaluation_metric + " over all splits for dummy median regressor is:" + str(round(total_dummy_median_score/num_of_splits,3)))
+    print(f'{evaluation_metric} over all splits for dummy median regressor is: {round(total_dummy_median_score/num_of_splits,3)}')
