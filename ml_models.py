@@ -2,6 +2,7 @@ import xgboost as xgb
 from sklearn import tree
 from sklearn.svm import SVR
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import Ridge
 from sklearn.dummy import DummyRegressor
 from sklearn.pipeline import make_pipeline
@@ -113,6 +114,15 @@ class MLPredictor():
 
             return evaluation_score
         
+        elif metric_name == "mse":
+
+            self.logger.info(self.logPrefix, "Using MSE metric.")
+
+            evaluation_score = mean_squared_error(y_test, y_predict)
+            self.logger.info(self.logPrefix, "MSE score is: " + str(evaluation_score))
+
+            return evaluation_score
+
         else:
             self.logger.error(self.logPrefix, "Invalid metric name. Ending program.")
             print("Provided metric name is invalid.")
