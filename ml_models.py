@@ -71,9 +71,9 @@ class MLPredictor():
             self.model = DummyRegressor(strategy="median")
 
         else:
-            self.logger.error(self.logPrefix, "Invalid model name.")
+            self.logger.error(self.logPrefix, "Invalid model name. Ending program.")
             print("Provided model name is invalid.")
-            return
+            exit()
     
     def train_model(self, X_train, y_train):
         
@@ -99,5 +99,6 @@ class MLPredictor():
             return evaluation_score[0]
         
         else:
-            self.logger.error(self.logPrefix, "Invalid metric name.")
+            self.logger.error(self.logPrefix, "Invalid metric name. Ending program.")
             print("Provided metric name is invalid.")
+            exit()
