@@ -1,6 +1,7 @@
 import xgboost as xgb
 from sklearn import tree
 from sklearn.svm import SVR
+from sklearn.metrics import r2_score
 from sklearn.linear_model import Ridge
 from sklearn.dummy import DummyRegressor
 from sklearn.pipeline import make_pipeline
@@ -97,6 +98,20 @@ class MLPredictor():
             self.logger.info(self.logPrefix, "MAE score is: " + str(evaluation_score))
 
             return evaluation_score[0]
+        
+        elif metric_name == "r2":
+
+            self.logger.info(self.logPrefix, "Using R2 metric.")
+
+            if len(y_test) < 2:
+                self.logger.error(self.logPrefix, "Not enough data to calculate R2 metric.")
+                print("Not enough data to calculate R2 metric.")
+                exit()
+
+            evaluation_score = r2_score(y_test, y_predict)
+            self.logger.info(self.logPrefix, "R2 score is: " + str(evaluation_score))
+
+            return evaluation_score
         
         else:
             self.logger.error(self.logPrefix, "Invalid metric name. Ending program.")
