@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import Ridge
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import LeaveOneOut
 from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
@@ -43,13 +44,13 @@ el['mass']        = np.interp(el['hour'], mt['hour'], mt['mass'])
 el['thick_m']     = np.interp(el['hour'], mt['hour'], mt['thick_m'])
 el['density_true']= np.interp(el['hour'], mt['hour'], mt['density_true'])
 
-# physics-informed GV at hours 0,24,528; measured elsewhere
+# physics-informed GV at hours 0, 24, 528; measured elsewhere
 phy_hours = {0,24,528}
-def compute_gv(r):
-    if r['hour'] in phy_hours:
-        return np.sqrt(r['E']*1e9 / r['density_true'])
+def compute_gv(row):
+    if row['hour'] in phy_hours:
+        return np.sqrt(row['E']*1e9 / row['density_true'])
     else:
-        return r['GV_meas'] * 1000.0
+        return row['GV_meas'] * 1000.0
 
 el['GV_phys'] = el.apply(compute_gv, axis=1)
 
@@ -58,12 +59,14 @@ el['GV_phys'] = el.apply(compute_gv, axis=1)
 # ------------------------
 models = {
     'Ridge': Ridge(),
+    'RF': RandomForestRegressor(n_estimators=50, max_depth=5, random_state=0),
     'XGBoost': XGBRegressor(n_estimators=5, max_depth=3, random_state=0, verbosity=0)
 }
 
 def loocv(df, feats, targ):
     loo = LeaveOneOut()
     scores = {name:0.0 for name in models}
+    n = len(df)
     for tr, te in loo.split(df):
         Xtr = df.iloc[tr][feats].values
         Xte = df.iloc[te][feats].values
@@ -72,7 +75,7 @@ def loocv(df, feats, targ):
         for name, mdl in models.items():
             mdl.fit(Xtr, ytr)
             scores[name] += mean_absolute_error(yte, mdl.predict(Xte))
-    return {name: scores[name]/len(df) for name in scores}
+    return {name: scores[name]/n for name in scores}
 
 # ------------------------
 # 4) Density CV & prediction
@@ -82,7 +85,7 @@ feats_den = {
     'mass+thickness': ['mass','thick_m'],
     'mass+thick+time': ['mass','thick_m','hour']
 }
-cv_den = {name: loocv(el, feats, 'density_true') for name,feats in feats_den.items()}
+cv_den = {name: loocv(el, feats, 'density_true') for name, feats in feats_den.items()}
 best_den_feat  = min(cv_den, key=lambda fs: min(cv_den[fs].values()))
 best_den_model = min(cv_den[best_den_feat], key=lambda m: cv_den[best_den_feat][m])
 den_mod = models[best_den_model]
@@ -96,18 +99,17 @@ feats_gv = {
     'density_pred': ['density_pred'],
     'density_pred+thickness': ['density_pred','thick_m']
 }
-# measured-only subset (exclude physics hours)
 df_meas = el[~el['hour'].isin(phy_hours)].copy()
 df_meas['GV_meas_m_s'] = df_meas['GV_meas'] * 1000.0
 
-cv_gv_meas = {name: loocv(df_meas, feats, 'GV_meas_m_s') for name,feats in feats_gv.items()}
+cv_gv_meas = {name: loocv(df_meas, feats, 'GV_meas_m_s') for name, feats in feats_gv.items()}
 best_meas_feat  = min(cv_gv_meas, key=lambda fs: min(cv_gv_meas[fs].values()))
 best_meas_model = min(cv_gv_meas[best_meas_feat], key=lambda m: cv_gv_meas[best_meas_feat][m])
 meas_mod = models[best_meas_model]
 meas_mod.fit(df_meas[feats_gv[best_meas_feat]], df_meas['GV_meas_m_s'])
 el['GV_pred_meas'] = meas_mod.predict(el[feats_gv[best_meas_feat]])
 
-cv_gv_phys = {name: loocv(el, feats, 'GV_phys') for name,feats in feats_gv.items()}
+cv_gv_phys = {name: loocv(el, feats, 'GV_phys') for name, feats in feats_gv.items()}
 best_phys_feat  = min(cv_gv_phys, key=lambda fs: min(cv_gv_phys[fs].values()))
 best_phys_model = min(cv_gv_phys[best_phys_feat], key=lambda m: cv_gv_phys[best_phys_feat][m])
 phys_mod = models[best_phys_model]
@@ -123,7 +125,7 @@ feats_E2 = {
     'GV (phys)': ['GV_phys'],
     'density+GV': ['density_pred','GV_phys']
 }
-cv_E2 = {name: loocv(el, feats, 'E') for name,feats in feats_E2.items()}
+cv_E2 = {name: loocv(el, feats, 'E') for name, feats in feats_E2.items()}
 best_E_feat  = min(cv_E2, key=lambda fs: min(cv_E2[fs].values()))
 best_E_model = min(cv_E2[best_E_feat], key=lambda m: cv_E2[best_E_feat][m])
 E_mod = models[best_E_model]
@@ -145,7 +147,7 @@ plot_bar(cv_gv_phys, 'GV CV MAE (physics-informed)')
 plot_bar(cv_E2,      'E CV MAE: time / density / GV / density+GV')
 
 # ------------------------
-# 8) Line plots (separate figs)
+# 8) Line plots
 # ------------------------
 # A) Density
 plt.figure(figsize=(7,4))
@@ -154,13 +156,13 @@ plt.plot(el['hour'], el['density_pred'], 'x--', label=f'Pred ({best_den_model})'
 plt.xlabel('Hour'); plt.ylabel('Density (kg/m³)')
 plt.title('Density: Actual vs Predicted'); plt.legend(); plt.tight_layout(); plt.show()
 
-# B) GV combined
+# B) Combined GV
 plt.figure(figsize=(8,4))
 plt.plot(el['hour'], el['GV_phys']/1000, 'o-', label='Physics GV')
-plt.plot(el['hour'], el['GV_pred_meas']/1000, 's--', label='ML from measured')
-plt.plot(el['hour'], el['GV_pred_phys']/1000, 'x-.', label='ML from phys-informed')
+plt.plot(el['hour'], el['GV_pred_meas']/1000, 's--', label='RF from measured')
+plt.plot(el['hour'], el['GV_pred_phys']/1000, 'x-.', label='RF from phys-informed')
 plt.xlabel('Hour'); plt.ylabel('GV (km/s)')
-plt.title('GV: Physics vs ML (meas & phys-informed)'); plt.legend(); plt.tight_layout(); plt.show()
+plt.title('GV: Physics vs RF (meas & phys-informed)'); plt.legend(); plt.tight_layout(); plt.show()
 
 # C) Young’s Modulus vs Predictions
 plt.figure(figsize=(8,4))
@@ -175,11 +177,11 @@ fig, ax1 = plt.subplots(figsize=(8,4))
 ax1.plot(el['hour'], el['E'], 'o-', color='tab:blue', label='E (GPa)')
 ax1.set_xlabel('Hour'); ax1.set_ylabel('E (GPa)', color='tab:blue')
 ax2 = ax1.twinx()
-ax2.plot(el['hour'], el['GV_phys']/1000, 's--', color='tab:green', label='GV phys (km/s)')
+ax2.plot(el['hour'], el['GV_phys']/1000, 's--', color='tab:green', label='GV_phys (km/s)')
 ax2.set_ylabel('GV (km/s)', color='tab:green')
 fig.legend(loc='upper right'); plt.title('E & Physics-Informed GV Over Time'); plt.tight_layout(); plt.show()
-
 """
+
 # ------------------------
 # 9) Print tables
 # ------------------------
