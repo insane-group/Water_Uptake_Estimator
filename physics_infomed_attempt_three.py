@@ -169,6 +169,7 @@ plt.plot(el['hour'], el['E_pred_full'], 'x--', label=f'Pred E ({best_E_feat})')
 plt.xlabel('Hour'); plt.ylabel('E (GPa)')
 plt.title('Young’s Modulus: Actual vs Predicted'); plt.legend(); plt.tight_layout(); plt.show()
 
+"""
 # D) Overlay E & GV_phys
 fig, ax1 = plt.subplots(figsize=(8,4))
 ax1.plot(el['hour'], el['E'], 'o-', color='tab:blue', label='E (GPa)')
@@ -178,6 +179,7 @@ ax2.plot(el['hour'], el['GV_phys']/1000, 's--', color='tab:green', label='GV phy
 ax2.set_ylabel('GV (km/s)', color='tab:green')
 fig.legend(loc='upper right'); plt.title('E & Physics-Informed GV Over Time'); plt.tight_layout(); plt.show()
 
+"""
 # ------------------------
 # 9) Print tables
 # ------------------------
