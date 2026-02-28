@@ -83,6 +83,5 @@ This project combines **physics-driven** formulas with **data-driven** machine-l
 
 ---
 
-> **Author**: Christoforos Rekatsinas
-> **License**: MIT  
+> **Author**: Christoforos Rekatsinas  
 > **Contact**: crek@iit.demokritos.gr 
