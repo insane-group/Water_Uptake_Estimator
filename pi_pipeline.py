@@ -49,7 +49,7 @@ def run_pipeline(
         t, 
         mass_res.pred_hybrid, thick_res.pred_hybrid, 
         mass_res.pred_pure, thick_res.pred_pure, 
-        M[0], h[0], rho_0, idx_m, rho_fluid=rho_fluid
+        M[0], h[0], rho_0, idx_m, rho_exp=rho_exp, rho_fluid=rho_fluid
     )
     
     # 4. Group Velocity

@@ -76,13 +76,9 @@ exp_stds = {
 }
 
 # --- PIPELINE CONFIGURATION ---
-
-cg_comp_hours = np.array([9.47, 18.94, 47.36]) #np.array([50, 150, 300, 450])
-cg_comp_vals = np.array([2208, 1996, 1776]) #np.array([2000, 1550, 1350, 1310]) 
-
-#cg_comp_hours = np.array([270, 360, 528]) #np.array([50, 150, 300, 450])
-#cg_comp_vals = np.array([1340, 1300, 1320]) #np.array([2000, 1550, 1350, 1310]) 
-
+"""
+cg_comp_hours = np.array([9.47, 18.94, 47.36, 360]) #np.array([50, 150, 300, 450])
+cg_comp_vals = np.array([2208, 1996, 1776, 1300]) #np.array([2000, 1550, 1350, 1310]) 
 
 pi_mass  = PISpec1D(np.array([150, 300]), pi_percent=1.0)
 pi_thick = PISpec1D(np.array([50, 150]), pi_percent=1.0)
@@ -92,10 +88,13 @@ pi_E     = PISpec1D(np.array([ 10, 50, 200, 400]), pi_percent=1.0)
 #even - manual
 mass_cfg  = dict(mass_mode="even", mass_n=3)
 thick_cfg = dict(thick_mode="even", thick_n=3) #thick_idx=[0, 5, 11]
-cg_cfg    = dict(cg_mode="even", cg_n=4) #cg_idx=[1, 2, 4, 6]
+cg_cfg    = dict(cg_mode="even", cg_n=3) #cg_idx=[1, 2, 4, 6]
 E_cfg     = dict(E_mode="even", E_n=3) #E_idx=[0, 2, 6]
 
 """
+
+cg_comp_hours = np.array([270, 360, 528]) #np.array([50, 150, 300, 450])
+cg_comp_vals = np.array([1340, 1300, 1320]) #np.array([2000, 1550, 1350, 1310]) 
 
 pi_mass  = PISpec1D(np.array([150, 300]), pi_percent=1.0)
 pi_thick = PISpec1D(np.array([250, 300]), pi_percent=1.0)
@@ -107,7 +106,7 @@ mass_cfg  = dict(mass_mode="manual", mass_idx=[0, 4, 8])
 thick_cfg = dict(thick_mode="manual", thick_idx=[0, 4, 8]) #thick_idx=[0, 5, 11]
 cg_cfg    = dict(cg_mode="manual", cg_idx=[0, 1, 2]) #cg_idx=[1, 2, 4, 6]
 E_cfg     = dict(E_mode="manual", E_idx=[0, 1, 2]) #E_idx=[0, 2, 6]
-"""
+#"""
 
 alpha_global = fit_alpha_from_cases([case5])
 
@@ -124,6 +123,7 @@ out = run_pipeline(
 print(f"\nRESULTS (Pure vs Hybrid MAE):")
 print(f"Mass:   Pure={out.mass.mae_pure:.4f} | Hybrid={out.mass.mae_val:.4f}")
 print(f"Thick:  Pure={out.thick.mae_pure:.4f} | Hybrid={out.thick.mae_val:.4f}")
+print(f"Dens:   Pure={out.dens.mae_pure:.4f} | Hybrid={out.dens.mae_val:.4f}")
 print(f"CG:     Pure={out.cg.mae_pure:.4f} | Hybrid={out.cg.mae_val:.4f}")
 print(f"Youngs: Pure={out.youngs.mae_pure:.4f} | Hybrid={out.youngs.mae_val:.4f}")
 

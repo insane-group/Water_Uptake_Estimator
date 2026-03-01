@@ -205,12 +205,25 @@ class ThicknessSurrogate:
 class DensitySurrogate:
     def __init__(self, seed=42): self.seed = seed
     
-    def train(self, t, M_hybrid, h_hybrid, M_pure, h_pure, M0, h0, rho0, idx_train, rho_fluid=1000.0) -> ResultBase:
+    def train(self, t, M_hybrid, h_hybrid, M_pure, h_pure, M0, h0, rho0, idx_train, rho_exp=None, rho_fluid=1000.0) -> ResultBase:
         # Physics Baseline using Hybrid Inputs
         rho_hybrid_phys = rom_density(M_hybrid, h_hybrid, M0, rho0, rho_fluid)
+        
+        # Pure Baseline using Pure Inputs (shows how non-hybrid ML predictions propagate error)
         rho_pure_phys = rom_density(M_pure, h_pure, M0, rho0, rho_fluid)
         
-        return ResultBase(t, idx_train, rho_pure_phys, rho_hybrid_phys, rho_hybrid_phys, 0.0, 0.0)
+        mae_pure = 0.0
+        mae_hyb = 0.0
+        
+        if rho_exp is not None:
+            # Calculate validation error on non-training points (or all points if none)
+            eval_idx = complement_idx(len(t), idx_train)
+            if len(eval_idx) == 0: eval_idx = idx_train
+            
+            mae_pure = np.mean(np.abs(rho_pure_phys[eval_idx] - rho_exp[eval_idx]))
+            mae_hyb = np.mean(np.abs(rho_hybrid_phys[eval_idx] - rho_exp[eval_idx]))
+            
+        return ResultBase(t, idx_train, rho_pure_phys, rho_hybrid_phys, rho_hybrid_phys, mae_hyb, mae_pure, 0.0, None, None)
 
 # --- 4. CG SURROGATE ---
 class CGSurrogate:
