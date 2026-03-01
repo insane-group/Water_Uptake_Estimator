@@ -7,7 +7,7 @@ from pi_surrogates import PISpec1D, fit_alpha_from_cases
 # main_run.py
 import numpy as np
 from pi_pipeline import run_pipeline
-from pi_plots import plot_all
+from pi_plots import plot_all, plot_test_evaluations
 from pi_surrogates import PISpec1D, fit_alpha_from_cases
 
 # --- HISTORICAL EXPERIMENTAL DATA (For STD calculation) ---
@@ -40,8 +40,18 @@ all_cases = [
 ]
 
 case5 = all_cases[4]
-cg_data = {"hour": np.array([0, 24, 90, 180, 270, 360, 528], float), "gv_ms": np.array([2360, 1890, 1610, 1500, 1340, 1300, 1320], float)}
+cg_data = {"hour": np.array([0, 24, 90, 180, 270, 360, 528], float), "gv_ms": np.array([2360, 1890, 1610, 1500, 1340, 1310, 1300], float)}
 E_data = {"hour": np.array([0, 24, 90, 180, 270, 360, 528], float), "E_GPa": np.array([6.479, 4.219, 3.269, 2.757, 2.773, 2.185, 2.187], float)}
+
+
+# --- NEW: UNSEEN TEST SET FOR PARITY EVALUATION ---
+test_data = {
+    "time": np.array([13, 40, 180, 270, 360, 528], float),
+    "mass": np.array([123.21, 126.47, 133.45, 135.5, 135.3, 139.0], float),
+    "thick": np.array([3.49, 3.54, 3.87, 4.06, 4.08, 4.07], float),
+    "gv_ms": np.array([2115, 1760, 1500, 1340, 1310, 1300], float),
+    "E_GPa": np.array([5.01, 4.031, 2.757, 2.773, 2.185, 2.187], float)
+}
 
 # --- CALCULATE EXPERIMENTAL UNCERTAINTY (STD) MARGINS ---
 def compute_std(t_eval, cases, key):
@@ -76,7 +86,7 @@ exp_stds = {
 }
 
 # --- PIPELINE CONFIGURATION ---
-"""
+""" #Even configuration
 cg_comp_hours = np.array([9.47, 18.94, 47.36, 360]) #np.array([50, 150, 300, 450])
 cg_comp_vals = np.array([2208, 1996, 1776, 1300]) #np.array([2000, 1550, 1350, 1310]) 
 
@@ -92,9 +102,9 @@ cg_cfg    = dict(cg_mode="even", cg_n=3) #cg_idx=[1, 2, 4, 6]
 E_cfg     = dict(E_mode="even", E_n=3) #E_idx=[0, 2, 6]
 
 """
-
-cg_comp_hours = np.array([270, 360, 528]) #np.array([50, 150, 300, 450])
-cg_comp_vals = np.array([1340, 1300, 1320]) #np.array([2000, 1550, 1350, 1310]) 
+    #Initial configuration
+cg_comp_hours = np.array([9.47, 270, 360, 528]) #np.array([50, 150, 300, 450])
+cg_comp_vals = np.array([2208, 1360, 1330, 1320]) #np.array([2000, 1550, 1350, 1310]) 
 
 pi_mass  = PISpec1D(np.array([150, 300]), pi_percent=1.0)
 pi_thick = PISpec1D(np.array([250, 300]), pi_percent=1.0)
@@ -128,3 +138,6 @@ print(f"CG:     Pure={out.cg.mae_pure:.4f} | Hybrid={out.cg.mae_val:.4f}")
 print(f"Youngs: Pure={out.youngs.mae_pure:.4f} | Hybrid={out.youngs.mae_val:.4f}")
 
 plot_all(out, case5, cg_data, E_data, prefix="Case 5", exp_stds=exp_stds)
+
+# 2. Plot Parity Evaluation (Test Set)
+plot_test_evaluations(out, test_data)
