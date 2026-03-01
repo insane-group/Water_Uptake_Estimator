@@ -46,11 +46,11 @@ E_data = {"hour": np.array([0, 24, 90, 180, 270, 360, 528], float), "E_GPa": np.
 
 # --- NEW: UNSEEN TEST SET FOR PARITY EVALUATION ---
 test_data = {
-    "time": np.array([13, 40, 180, 270, 360, 528], float),
-    "mass": np.array([123.21, 126.47, 133.45, 135.5, 135.3, 139.0], float),
-    "thick": np.array([3.49, 3.54, 3.87, 4.06, 4.08, 4.07], float),
-    "gv_ms": np.array([2115, 1760, 1500, 1340, 1310, 1300], float),
-    "E_GPa": np.array([5.01, 4.031, 2.757, 2.773, 2.185, 2.187], float)
+    "time": np.array([13, 40, 72, 120, 240], float),
+    "mass": np.array([123.21, 126.47, 128.72, 130.7, 136.6], float),
+    "thick": np.array([3.49, 3.54, 3.68, 3.77, 3.9], float),
+    "gv_ms": np.array([2115, 1760, 1650, 1580, 1410], float),
+    "E_GPa": np.array([5.01, 4.031, 3.561, 3.36, 2.55], float)
 }
 
 # --- CALCULATE EXPERIMENTAL UNCERTAINTY (STD) MARGINS ---
@@ -103,8 +103,8 @@ E_cfg     = dict(E_mode="even", E_n=3) #E_idx=[0, 2, 6]
 
 """
     #Initial configuration
-cg_comp_hours = np.array([9.47, 270, 360, 528]) #np.array([50, 150, 300, 450])
-cg_comp_vals = np.array([2208, 1360, 1330, 1320]) #np.array([2000, 1550, 1350, 1310]) 
+cg_comp_hours = np.array([9.47, 47.36, 270, 360, 528]) #np.array([50, 150, 300, 450])
+cg_comp_vals = np.array([2208, 1776, 1360, 1330, 1320]) #np.array([2000, 1550, 1350, 1310]) 
 
 pi_mass  = PISpec1D(np.array([150, 300]), pi_percent=1.0)
 pi_thick = PISpec1D(np.array([250, 300]), pi_percent=1.0)
@@ -112,10 +112,10 @@ pi_cg    = PISpec1D(cg_comp_hours, values=cg_comp_vals, pi_percent=1.0)
 pi_E     = PISpec1D(np.array([ 10, 20, 200, 400]), pi_percent=1.0)
 
 #even - manual
-mass_cfg  = dict(mass_mode="manual", mass_idx=[0, 4, 8])
-thick_cfg = dict(thick_mode="manual", thick_idx=[0, 4, 8]) #thick_idx=[0, 5, 11]
-cg_cfg    = dict(cg_mode="manual", cg_idx=[0, 1, 2]) #cg_idx=[1, 2, 4, 6]
-E_cfg     = dict(E_mode="manual", E_idx=[0, 1, 2]) #E_idx=[0, 2, 6]
+mass_cfg  = dict(mass_mode="manual", mass_idx=[0, 4, 8], mass_pure_mode="even", mass_pure_n=7)
+thick_cfg = dict(thick_mode="manual", thick_idx=[0, 4, 8], thick_pure_mode="even", thick_pure_n=7)
+cg_cfg    = dict(cg_mode="manual", cg_idx=[0, 1, 2], cg_pure_mode="even", cg_pure_n=7)
+E_cfg     = dict(E_mode="manual", E_idx=[0, 1, 2], E_pure_mode="even", E_pure_n=7)
 #"""
 
 alpha_global = fit_alpha_from_cases([case5])

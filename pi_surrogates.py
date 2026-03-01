@@ -51,6 +51,7 @@ class ResultBase:
     lambda_star: float = 0.0
     pi_hours: Optional[np.ndarray] = None
     pi_values: Optional[np.ndarray] = None
+    idx_train_pure: Optional[np.ndarray] = None # Tracks pure ML training points
 
 # --- PHYSICS FUNCTIONS ---
 def fickian_fraction(t_h: np.ndarray, tau_h: float) -> np.ndarray:
@@ -92,12 +93,14 @@ def fit_alpha_from_cases(cases: List[Dict]) -> float:
 class MassSurrogate:
     def __init__(self, seed=42): self.seed = seed
     
-    def train(self, t, M, idx_train, pi: Optional[PISpec1D], pi_weight=1.0, lambdas=None) -> ResultBase:
+    def train(self, t, M, idx_train, pi: Optional[PISpec1D], pi_weight=1.0, lambdas=None, idx_train_pure=None) -> ResultBase:
         set_global_seed(self.seed)
+        if idx_train_pure is None: idx_train_pure = idx_train
+        
         t_tr, M_tr = t[idx_train], M[idx_train]
         M0 = float(M[0])
         
-        # Physics Fit
+        # Physics Fit (on Sparse Hybrid Data)
         best = (100.0, float(np.max(M_tr)), np.inf)
         for tau in [10, 20, 50, 100, 200, 500, 800]:
             term = fickian_fraction(t_tr, tau)
@@ -107,12 +110,13 @@ class MassSurrogate:
             if err < best[2]: best = (tau, M0+dM, err)
         M_phys = fickian_model(t, M0, best[1], best[0])
 
-        # Pure ML
+        # Pure ML (Trained on Denser Data)
+        t_tr_pure, M_tr_pure = t[idx_train_pure], M[idx_train_pure]
         rf_pure = RandomForestRegressor(n_estimators=300, random_state=self.seed)
-        rf_pure.fit(t_tr.reshape(-1,1), M_tr)
+        rf_pure.fit(t_tr_pure.reshape(-1,1), M_tr_pure)
         M_pure = rf_pure.predict(t.reshape(-1,1))
 
-        # Hybrid
+        # Hybrid (Exp Sparse + PI)
         X_aug, y_aug, w_aug = t_tr.reshape(-1,1), M_tr.copy(), np.ones(len(M_tr))
         pi_h, pi_v = None, None
         if pi and len(pi.hours) > 0:
@@ -129,11 +133,13 @@ class MassSurrogate:
         rf_hyb.fit(X_aug, y_aug, sample_weight=w_aug)
         M_rf_hyb = rf_hyb.predict(t.reshape(-1,1))
 
-        # Eval
+        # Eval MAE
         idx_val = complement_idx(len(t), idx_train)
         eval_idx = idx_val if len(idx_val) > 0 else idx_train
+        idx_val_pure = complement_idx(len(t), idx_train_pure)
+        eval_idx_pure = idx_val_pure if len(idx_val_pure) > 0 else idx_train_pure
         
-        mae_pure = np.mean(np.abs(M_pure[eval_idx] - M[eval_idx]))
+        mae_pure = np.mean(np.abs(M_pure[eval_idx_pure] - M[eval_idx_pure]))
 
         best_lam, min_mae, M_final = 0.0, np.inf, M_rf_hyb
         l_grid = lambdas if lambdas else np.linspace(0, 1, 21)
@@ -142,7 +148,7 @@ class MassSurrogate:
             mae = np.mean(np.abs(blend[eval_idx] - M[eval_idx]))
             if mae < min_mae: min_mae, best_lam, M_final = mae, lam, blend
 
-        res = ResultBase(t, idx_train, M_pure, M_phys, M_final, min_mae, mae_pure, best_lam, pi_h, pi_v)
+        res = ResultBase(t, idx_train, M_pure, M_phys, M_final, min_mae, mae_pure, best_lam, pi_h, pi_v, idx_train_pure)
         res.params = {"Minf": best[1], "tau": best[0]}
         return res
 
@@ -154,21 +160,25 @@ class ThickResult(ResultBase):
 class ThicknessSurrogate:
     def __init__(self, seed=42): self.seed = seed
     
-    def train(self, t, h_true, M_pred, idx_train, alpha, pi: Optional[PISpec1D], pi_weight=1.0, lambdas=None) -> ThickResult:
+    def train(self, t, h_true, M_pred, M_pred_pure, idx_train, alpha, pi: Optional[PISpec1D], pi_weight=1.0, lambdas=None, idx_train_pure=None) -> ThickResult:
         set_global_seed(self.seed)
+        if idx_train_pure is None: idx_train_pure = idx_train
+        if M_pred_pure is None: M_pred_pure = M_pred
+        
         h0 = float(h_true[0])
         M0 = float(M_pred[0])
         h_phys = thickness_physics_linear(M_pred, h0, alpha, M0)
 
-        t_tr, h_tr = t[idx_train], h_true[idx_train]
-        M_tr = M_pred[idx_train]
-
-        # Pure ML
+        # Pure ML (Trained on Pure Mass predictions & Denser Data)
+        t_tr_pure, h_tr_pure = t[idx_train_pure], h_true[idx_train_pure]
+        M_tr_pure = M_pred_pure[idx_train_pure]
         rf_pure = RandomForestRegressor(n_estimators=300, random_state=self.seed)
-        rf_pure.fit(M_tr.reshape(-1,1), h_tr)
-        h_pure = rf_pure.predict(M_pred.reshape(-1,1))
+        rf_pure.fit(M_tr_pure.reshape(-1,1), h_tr_pure)
+        h_pure = rf_pure.predict(M_pred_pure.reshape(-1,1))
 
         # Hybrid
+        t_tr, h_tr = t[idx_train], h_true[idx_train]
+        M_tr = M_pred[idx_train]
         X_aug, y_aug, w_aug = M_tr.reshape(-1,1), h_tr.copy(), np.ones(len(h_tr))
         pi_h, pi_v = None, None
         if pi and len(pi.hours) > 0:
@@ -189,8 +199,10 @@ class ThicknessSurrogate:
         # Eval
         idx_val = complement_idx(len(t), idx_train)
         eval_idx = idx_val if len(idx_val) > 0 else idx_train
+        idx_val_pure = complement_idx(len(t), idx_train_pure)
+        eval_idx_pure = idx_val_pure if len(idx_val_pure) > 0 else idx_train_pure
         
-        mae_pure = np.mean(np.abs(h_pure[eval_idx] - h_true[eval_idx]))
+        mae_pure = np.mean(np.abs(h_pure[eval_idx_pure] - h_true[eval_idx_pure]))
 
         best_lam, min_mae, h_final = 0.0, np.inf, h_rf_hyb
         l_grid = lambdas if lambdas else np.linspace(0, 1, 21)
@@ -199,42 +211,41 @@ class ThicknessSurrogate:
             mae = np.mean(np.abs(blend[eval_idx] - h_true[eval_idx]))
             if mae < min_mae: min_mae, best_lam, h_final = mae, lam, blend
 
-        return ThickResult(t, idx_train, h_pure, h_phys, h_final, min_mae, mae_pure, best_lam, pi_h, pi_v, alpha)
+        return ThickResult(t, idx_train, h_pure, h_phys, h_final, min_mae, mae_pure, best_lam, pi_h, pi_v, idx_train_pure, alpha)
 
 # --- 3. DENSITY SURROGATE ---
 class DensitySurrogate:
     def __init__(self, seed=42): self.seed = seed
     
-    def train(self, t, M_hybrid, h_hybrid, M_pure, h_pure, M0, h0, rho0, idx_train, rho_exp=None, rho_fluid=1000.0) -> ResultBase:
-        # Physics Baseline using Hybrid Inputs
-        rho_hybrid_phys = rom_density(M_hybrid, h_hybrid, M0, rho0, rho_fluid)
+    def train(self, t, M_hybrid, h_hybrid, M_pure, h_pure, M0, h0, rho0, idx_train, rho_exp=None, rho_fluid=1000.0, idx_train_pure=None) -> ResultBase:
+        if idx_train_pure is None: idx_train_pure = idx_train
         
-        # Pure Baseline using Pure Inputs (shows how non-hybrid ML predictions propagate error)
+        rho_hybrid_phys = rom_density(M_hybrid, h_hybrid, M0, rho0, rho_fluid)
         rho_pure_phys = rom_density(M_pure, h_pure, M0, rho0, rho_fluid)
         
-        mae_pure = 0.0
-        mae_hyb = 0.0
-        
+        mae_pure, mae_hyb = 0.0, 0.0
         if rho_exp is not None:
-            # Calculate validation error on non-training points (or all points if none)
             eval_idx = complement_idx(len(t), idx_train)
             if len(eval_idx) == 0: eval_idx = idx_train
+            eval_idx_pure = complement_idx(len(t), idx_train_pure)
+            if len(eval_idx_pure) == 0: eval_idx_pure = idx_train_pure
             
-            mae_pure = np.mean(np.abs(rho_pure_phys[eval_idx] - rho_exp[eval_idx]))
+            mae_pure = np.mean(np.abs(rho_pure_phys[eval_idx_pure] - rho_exp[eval_idx_pure]))
             mae_hyb = np.mean(np.abs(rho_hybrid_phys[eval_idx] - rho_exp[eval_idx]))
             
-        return ResultBase(t, idx_train, rho_pure_phys, rho_hybrid_phys, rho_hybrid_phys, mae_hyb, mae_pure, 0.0, None, None)
+        return ResultBase(t, idx_train, rho_pure_phys, rho_hybrid_phys, rho_hybrid_phys, mae_hyb, mae_pure, 0.0, None, None, idx_train_pure)
 
 # --- 4. CG SURROGATE ---
 class CGSurrogate:
     def __init__(self, seed=42): self.seed = seed
-    def train(self, t_full, t_exp, gv_exp, idx_train, pi, pi_weight=1.0) -> ResultBase:
+    def train(self, t_full, t_exp, gv_exp, idx_train, pi, pi_weight=1.0, idx_train_pure=None) -> ResultBase:
         set_global_seed(self.seed)
-        t_tr, y_tr = t_exp[idx_train], gv_exp[idx_train]
+        if idx_train_pure is None: idx_train_pure = idx_train
         
         # Pure ML
+        t_tr_pure, y_tr_pure = t_exp[idx_train_pure], gv_exp[idx_train_pure]
         rf_pure = RandomForestRegressor(n_estimators=300, random_state=self.seed)
-        rf_pure.fit(t_tr.reshape(-1,1), y_tr)
+        rf_pure.fit(t_tr_pure.reshape(-1,1), y_tr_pure)
         pred_pure = rf_pure.predict(t_full.reshape(-1,1))
         
         # Physics (PI only)
@@ -248,10 +259,11 @@ class CGSurrogate:
                 rf_phys = RandomForestRegressor(n_estimators=300, random_state=self.seed)
                 rf_phys.fit(pi_h.reshape(-1,1), pi_v)
                 pred_phys = rf_phys.predict(t_full.reshape(-1,1))
-            else: pred_phys = np.full_like(t_full, np.mean(y_tr))
-        else: pred_phys = np.full_like(t_full, np.mean(y_tr))
+            else: pred_phys = np.full_like(t_full, np.mean(gv_exp[idx_train]))
+        else: pred_phys = np.full_like(t_full, np.mean(gv_exp[idx_train]))
 
         # Hybrid
+        t_tr, y_tr = t_exp[idx_train], gv_exp[idx_train]
         X_aug, y_aug, w_aug = t_tr.reshape(-1,1), y_tr.copy(), np.ones(len(y_tr))
         if pi_h is not None:
             X_aug = np.vstack([X_aug, pi_h.reshape(-1,1)])
@@ -263,26 +275,28 @@ class CGSurrogate:
         pred_hybrid = rf_hyb.predict(t_full.reshape(-1,1))
         
         eval_idx = complement_idx(len(t_exp), idx_train) if len(t_exp)>len(idx_train) else idx_train
-        mae_pure = np.mean(np.abs(rf_pure.predict(t_exp[eval_idx].reshape(-1,1)) - gv_exp[eval_idx]))
+        eval_idx_pure = complement_idx(len(t_exp), idx_train_pure) if len(t_exp)>len(idx_train_pure) else idx_train_pure
+        mae_pure = np.mean(np.abs(rf_pure.predict(t_exp[eval_idx_pure].reshape(-1,1)) - gv_exp[eval_idx_pure]))
         mae_hyb = np.mean(np.abs(rf_hyb.predict(t_exp[eval_idx].reshape(-1,1)) - gv_exp[eval_idx]))
         
-        return ResultBase(t_full, idx_train, pred_pure, pred_phys, pred_hybrid, mae_hyb, mae_pure, 0.0, pi_h, pi_v)
+        return ResultBase(t_full, idx_train, pred_pure, pred_phys, pred_hybrid, mae_hyb, mae_pure, 0.0, pi_h, pi_v, idx_train_pure)
 
 # --- 5. YOUNGS SURROGATE ---
 class YoungsSurrogate:
     def __init__(self, seed=42): self.seed = seed
-    def train(self, t_full, t_exp, E_exp, idx_train, rho_hyb, gv_hyb, rho_pure, gv_pure, pi, pi_weight=1.0) -> ResultBase:
+    def train(self, t_full, t_exp, E_exp, idx_train, rho_hyb, gv_hyb, rho_pure, gv_pure, pi, pi_weight=1.0, idx_train_pure=None) -> ResultBase:
         set_global_seed(self.seed)
-        
+        if idx_train_pure is None: idx_train_pure = idx_train
         pred_phys = (rho_hyb * (gv_hyb**2)) / 1e9 
-        t_tr, y_tr = t_exp[idx_train], E_exp[idx_train]
         
         # Pure ML
+        t_tr_pure, y_tr_pure = t_exp[idx_train_pure], E_exp[idx_train_pure]
         rf_pure = RandomForestRegressor(n_estimators=300, random_state=self.seed)
-        rf_pure.fit(t_tr.reshape(-1,1), y_tr)
+        rf_pure.fit(t_tr_pure.reshape(-1,1), y_tr_pure)
         pred_pure = rf_pure.predict(t_full.reshape(-1,1))
         
         # Hybrid
+        t_tr, y_tr = t_exp[idx_train], E_exp[idx_train]
         X_aug, y_aug, w_aug = t_tr.reshape(-1,1), y_tr.copy(), np.ones(len(y_tr))
         pi_h, pi_v = None, None
         if pi and len(pi.hours) > 0:
@@ -300,7 +314,8 @@ class YoungsSurrogate:
         pred_hybrid = rf_hyb.predict(t_full.reshape(-1,1))
         
         eval_idx = complement_idx(len(t_exp), idx_train) if len(t_exp)>len(idx_train) else idx_train
-        mae_pure = np.mean(np.abs(rf_pure.predict(t_exp[eval_idx].reshape(-1,1)) - E_exp[eval_idx]))
+        eval_idx_pure = complement_idx(len(t_exp), idx_train_pure) if len(t_exp)>len(idx_train_pure) else idx_train_pure
+        mae_pure = np.mean(np.abs(rf_pure.predict(t_exp[eval_idx_pure].reshape(-1,1)) - E_exp[eval_idx_pure]))
         mae_hyb = np.mean(np.abs(rf_hyb.predict(t_exp[eval_idx].reshape(-1,1)) - E_exp[eval_idx]))
         
-        return ResultBase(t_full, idx_train, pred_pure, pred_phys, pred_hybrid, mae_hyb, mae_pure, 0.0, pi_h, pi_v)
+        return ResultBase(t_full, idx_train, pred_pure, pred_phys, pred_hybrid, mae_hyb, mae_pure, 0.0, pi_h, pi_v, idx_train_pure)
