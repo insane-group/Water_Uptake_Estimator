@@ -1,0 +1,121 @@
+﻿source,relative_perturbation,property,mean_absolute_change,max_absolute_change,mean_absolute_relative_change_percent
+Wet mass trajectory,-0.05,mass,6.399797987191072,6.940032101796248,4.782608695652178
+Wet mass trajectory,-0.05,thick,0.2527208150534492,0.2740540518268535,6.460351248422114
+Wet mass trajectory,-0.05,dens,6.643058427486286,7.484021505144256,0.5847062831024868
+Wet mass trajectory,-0.05,cg,0.0,0.0,0.0
+Wet mass trajectory,-0.05,proxy,0.014493509498749047,0.021156108468457724,0.5847062831024841
+Wet mass trajectory,-0.05,youngs,0.009499396939340026,0.013502890448041427,0.39460758099410453
+Wet mass trajectory,-0.01,mass,1.2799595974382152,1.388006420359261,0.9565217391304356
+Wet mass trajectory,-0.01,thick,0.05054416301068993,0.05481081036537194,1.2920702496844265
+Wet mass trajectory,-0.01,dens,1.3170543793357172,1.4711823703692062,0.11589488455792493
+Wet mass trajectory,-0.01,cg,0.0,0.0,0.0
+Wet mass trajectory,-0.01,proxy,0.002936576041559488,0.005661386964893822,0.115894884557923
+Wet mass trajectory,-0.01,youngs,0.001917817267869838,0.0025982598162528348,0.078038409179194
+Wet mass trajectory,0.01,mass,1.2799595974382145,1.388006420359261,0.9565217391304356
+Wet mass trajectory,0.01,thick,0.05054416301068989,0.054810810365371054,1.2920702496844256
+Wet mass trajectory,0.01,dens,1.2909740945964605,1.4420500462035761,0.11359993634886315
+Wet mass trajectory,0.01,cg,0.0,0.0,0.0
+Wet mass trajectory,0.01,proxy,0.0028784260209347746,0.005549280292322045,0.11359993634886653
+Wet mass trajectory,0.01,youngs,0.0018798406883080818,0.002546809126822147,0.07649309414594388
+Wet mass trajectory,0.05,mass,6.399797987191075,6.940032101796248,4.782608695652178
+Wet mass trajectory,0.05,thick,0.25272081505344923,0.2740540518268526,6.4603512484221195
+Wet mass trajectory,0.05,dens,6.208970645439965,6.935574031740771,0.5463615986302314
+Wet mass trajectory,0.05,cg,0.0,0.0,0.0
+Wet mass trajectory,0.05,proxy,0.013843858481638098,0.026689395691643192,0.5463615986302344
+Wet mass trajectory,0.05,youngs,0.009041138548529604,0.012248939133763681,0.36789535755908065
+Wet thickness trajectory,-0.05,mass,0.0,0.0,0.0
+Wet thickness trajectory,-0.05,thick,0.18716732816228868,0.20552086098609346,4.782608695652178
+Wet thickness trajectory,-0.05,dens,0.0,0.0,0.0
+Wet thickness trajectory,-0.05,cg,0.0,0.0,0.0
+Wet thickness trajectory,-0.05,proxy,0.0,0.0,0.0
+Wet thickness trajectory,-0.05,youngs,0.0,0.0,0.0
+Wet thickness trajectory,-0.01,mass,0.0,0.0,0.0
+Wet thickness trajectory,-0.01,thick,0.03743346563245776,0.04110417219721896,0.9565217391304361
+Wet thickness trajectory,-0.01,dens,0.0,0.0,0.0
+Wet thickness trajectory,-0.01,cg,0.0,0.0,0.0
+Wet thickness trajectory,-0.01,proxy,0.0,0.0,0.0
+Wet thickness trajectory,-0.01,youngs,0.0,0.0,0.0
+Wet thickness trajectory,0.01,mass,0.0,0.0,0.0
+Wet thickness trajectory,0.01,thick,0.037433465632457724,0.04110417219721896,0.9565217391304356
+Wet thickness trajectory,0.01,dens,0.0,0.0,0.0
+Wet thickness trajectory,0.01,cg,0.0,0.0,0.0
+Wet thickness trajectory,0.01,proxy,0.0,0.0,0.0
+Wet thickness trajectory,0.01,youngs,0.0,0.0,0.0
+Wet thickness trajectory,0.05,mass,0.0,0.0,0.0
+Wet thickness trajectory,0.05,thick,0.18716732816228862,0.2055208609860939,4.782608695652179
+Wet thickness trajectory,0.05,dens,0.0,0.0,0.0
+Wet thickness trajectory,0.05,cg,0.0,0.0,0.0
+Wet thickness trajectory,0.05,proxy,0.0,0.0,0.0
+Wet thickness trajectory,0.05,youngs,0.0,0.0,0.0
+Swelling coefficient,-0.05,mass,0.0,0.0,0.0
+Swelling coefficient,-0.05,thick,0.022167328162288523,0.03302086098609358,0.5596827410548089
+Swelling coefficient,-0.05,dens,0.0,0.0,0.0
+Swelling coefficient,-0.05,cg,0.0,0.0,0.0
+Swelling coefficient,-0.05,proxy,0.0,0.0,0.0
+Swelling coefficient,-0.05,youngs,0.0,0.0,0.0
+Swelling coefficient,-0.01,mass,0.0,0.0,0.0
+Swelling coefficient,-0.01,thick,0.004433465632457689,0.006604172197219427,0.11193654821096156
+Swelling coefficient,-0.01,dens,0.0,0.0,0.0
+Swelling coefficient,-0.01,cg,0.0,0.0,0.0
+Swelling coefficient,-0.01,proxy,0.0,0.0,0.0
+Swelling coefficient,-0.01,youngs,0.0,0.0,0.0
+Swelling coefficient,0.01,mass,0.0,0.0,0.0
+Swelling coefficient,0.01,thick,0.004433465632457651,0.0066041721972185385,0.11193654821095964
+Swelling coefficient,0.01,dens,0.0,0.0,0.0
+Swelling coefficient,0.01,cg,0.0,0.0,0.0
+Swelling coefficient,0.01,proxy,0.0,0.0,0.0
+Swelling coefficient,0.01,youngs,0.0,0.0,0.0
+Swelling coefficient,0.05,mass,0.0,0.0,0.0
+Swelling coefficient,0.05,thick,0.02216732816228854,0.03302086098609269,0.5596827410548089
+Swelling coefficient,0.05,dens,0.0,0.0,0.0
+Swelling coefficient,0.05,cg,0.0,0.0,0.0
+Swelling coefficient,0.05,proxy,0.0,0.0,0.0
+Swelling coefficient,0.05,youngs,0.0,0.0,0.0
+Dry density,-0.05,mass,0.0,0.0,0.0
+Dry density,-0.05,thick,0.0,0.0,0.0
+Dry density,-0.05,dens,52.470407411877076,57.228455469961546,4.614708898400037
+Dry density,-0.05,cg,0.0,0.0,0.0
+Dry density,-0.05,proxy,0.12433430544137647,0.2964986272763719,4.614708898400042
+Dry density,-0.05,youngs,0.07780516983340328,0.09876868148639639,3.072933044913359
+Dry density,-0.01,mass,0.0,0.0,0.0
+Dry density,-0.01,thick,0.0,0.0,0.0
+Dry density,-0.01,dens,10.494081482375389,11.445691093992309,0.9229417796800055
+Dry density,-0.01,cg,0.0,0.0,0.0
+Dry density,-0.01,proxy,0.02486686108827534,0.05929972545527473,0.9229417796800098
+Dry density,-0.01,youngs,0.015561033966680689,0.01975373629727928,0.614586608982672
+Dry density,0.01,mass,0.0,0.0,0.0
+Dry density,0.01,thick,0.0,0.0,0.0
+Dry density,0.01,dens,10.49408148237545,11.445691093992536,0.9229417796800093
+Dry density,0.01,cg,0.0,0.0,0.0
+Dry density,0.01,proxy,0.024866861088275318,0.05929972545527562,0.9229417796800075
+Dry density,0.01,youngs,0.015561033966680612,0.01975373629727928,0.6145866089826696
+Dry density,0.05,mass,0.0,0.0,0.0
+Dry density,0.05,thick,0.0,0.0,0.0
+Dry density,0.05,dens,52.47040741187715,57.22845546996177,4.6147088984000435
+Dry density,0.05,cg,0.0,0.0,0.0
+Dry density,0.05,proxy,0.12433430544137651,0.29649862727637366,4.6147088984000435
+Dry density,0.05,youngs,0.07780516983340313,0.09876868148639639,3.072933044913352
+Group velocity trajectory,-0.05,mass,0.0,0.0,0.0
+Group velocity trajectory,-0.05,thick,0.0,0.0,0.0
+Group velocity trajectory,-0.05,dens,0.0,0.0,0.0
+Group velocity trajectory,-0.05,cg,75.53940579710152,113.8086666666668,5.000000000000004
+Group velocity trajectory,-0.05,proxy,0.25996689259381417,0.580557873014846,9.75000000000001
+Group velocity trajectory,-0.05,youngs,0.16403369198829323,0.20941016675057744,6.513959431476712
+Group velocity trajectory,-0.01,mass,0.0,0.0,0.0
+Group velocity trajectory,-0.01,thick,0.0,0.0,0.0
+Group velocity trajectory,-0.01,dens,0.0,0.0,0.0
+Group velocity trajectory,-0.01,cg,15.10788115942031,22.761733333333268,0.9999999999999999
+Group velocity trajectory,-0.01,proxy,0.05305990936017336,0.11849335049225918,1.9900000000000049
+Group velocity trajectory,-0.01,youngs,0.03347969713402082,0.04274115198293815,1.3295158224244743
+Group velocity trajectory,0.01,mass,0.0,0.0,0.0
+Group velocity trajectory,0.01,thick,0.0,0.0,0.0
+Group velocity trajectory,0.01,dens,0.0,0.0,0.0
+Group velocity trajectory,0.01,cg,15.10788115942031,22.761733333333268,1.0000000000000009
+Group velocity trajectory,0.01,proxy,0.053593174780878654,0.11968423843690701,2.0100000000000056
+Group velocity trajectory,0.01,youngs,0.03381617650220203,0.04317071129934957,1.342877790489042
+Group velocity trajectory,0.05,mass,0.0,0.0,0.0
+Group velocity trajectory,0.05,thick,0.0,0.0,0.0
+Group velocity trajectory,0.05,dens,0.0,0.0,0.0
+Group velocity trajectory,0.05,cg,75.53940579710152,113.8086666666668,5.000000000000004
+Group velocity trajectory,0.05,proxy,0.2732985281114456,0.610330071630993,10.250000000000012
+Group velocity trajectory,0.05,youngs,0.17244567619282147,0.22014914966086385,6.848008633090917

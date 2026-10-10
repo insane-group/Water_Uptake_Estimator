@@ -4,9 +4,6 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import Ridge
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 
 # --- Utilities ---
 def set_global_seed(seed: int = 42):
@@ -70,8 +67,20 @@ def thickness_physics_linear(M_curve: np.ndarray, h_dry: float, alpha: float, M_
     dm = (M_curve - M_dry) / M_dry
     return h_dry * (1.0 + alpha * dm)
 
-def rom_density(M_curve, h_curve, M0, rho_dry=1150.0, rho_fluid=1000.0):
+def rom_density(M_curve, h_curve, M0, rho_dry=1150.0, rho_fluid=1000.0, *, h0=None):
+    """Original effective arithmetic blend using absorbed-water mass fraction.
+
+    This reproduces the released model exactly for positive mass inputs. It is
+    an empirical density approximation, not an additive-volume or measured-
+    swelling identity. h_curve and h0 are retained for caller compatibility
+    and do not affect the output. Water uptake below zero is clipped as in
+    the original implementation.
+    """
     M_curve = np.asarray(M_curve, float)
+    if (not np.isfinite(M0) or M0 <= 0 or np.any(~np.isfinite(M_curve))
+            or np.any(M_curve <= 0) or min(rho_dry, rho_fluid) <= 0
+            or not np.all(np.isfinite([rho_dry, rho_fluid]))):
+        raise ValueError("Mass and constituent densities must be finite and positive")
     w = np.maximum(0.0, (M_curve - M0) / np.maximum(M_curve, 1e-12))
     return (1 - w) * rho_dry + w * rho_fluid
 
@@ -220,8 +229,8 @@ class DensitySurrogate:
     def train(self, t, M_hybrid, h_hybrid, M_pure, h_pure, M0, h0, rho0, idx_train, rho_exp=None, rho_fluid=1000.0, idx_train_pure=None) -> ResultBase:
         if idx_train_pure is None: idx_train_pure = idx_train
         
-        rho_hybrid_phys = rom_density(M_hybrid, h_hybrid, M0, rho0, rho_fluid)
-        rho_pure_phys = rom_density(M_pure, h_pure, M0, rho0, rho_fluid)
+        rho_hybrid_phys = rom_density(M_hybrid, h_hybrid, M0, rho0, rho_fluid, h0=h0)
+        rho_pure_phys = rom_density(M_pure, h_pure, M0, rho0, rho_fluid, h0=h0)
         
         mae_pure, mae_hyb = 0.0, 0.0
         if rho_exp is not None:
@@ -287,7 +296,9 @@ class YoungsSurrogate:
     def train(self, t_full, t_exp, E_exp, idx_train, rho_hyb, gv_hyb, rho_pure, gv_pure, pi, pi_weight=1.0, idx_train_pure=None) -> ResultBase:
         set_global_seed(self.seed)
         if idx_train_pure is None: idx_train_pure = idx_train
-        pred_phys = (rho_hyb * (gv_hyb**2)) / 1e9 
+        # Group-velocity stiffness proxy for augmentation; not a general
+        # inversion of anisotropic guided-wave dispersion to tensile modulus.
+        pred_phys = (rho_hyb * (gv_hyb**2)) / 1e9
         
         # Pure ML
         t_tr_pure, y_tr_pure = t_exp[idx_train_pure], E_exp[idx_train_pure]

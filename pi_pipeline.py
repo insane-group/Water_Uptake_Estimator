@@ -22,7 +22,7 @@ def run_pipeline(
     thick_mode="all", thick_n=None, thick_idx=None, thick_pure_mode=None, thick_pure_n=None, thick_pure_idx=None, pi_thick=None, pi_w_thick=1.0, fixed_alpha=None,
     cg_case=None, cg_mode="all", cg_n=None, cg_idx=None, cg_pure_mode=None, cg_pure_n=None, cg_pure_idx=None, pi_cg=None, pi_w_cg=1.0,
     E_case=None, E_mode="all", E_n=None, E_idx=None, E_pure_mode=None, E_pure_n=None, E_pure_idx=None, pi_E=None, pi_w_E=1.0,
-    rho_0=1200.0, rho_fluid=1000.0
+    rho_0=1150.0, rho_fluid=1000.0
 ):
     set_global_seed(42)
     t = case["time"]
@@ -35,7 +35,7 @@ def run_pipeline(
     mass_res = MassSurrogate().train(t, M, idx_m, pi_mass, pi_w_mass, idx_train_pure=idx_m_pure)
     
     # 2. Thickness
-    alpha = fixed_alpha if fixed_alpha else fit_alpha_from_cases(all_cases_for_alpha)
+    alpha = fixed_alpha if fixed_alpha is not None else fit_alpha_from_cases(all_cases_for_alpha)
     idx_th = resolve_idx(len(t), thick_mode, thick_n, thick_idx)
     idx_th_pure = resolve_idx(len(t), thick_pure_mode, thick_pure_n, thick_pure_idx) if thick_pure_mode else idx_th
     thick_res = ThicknessSurrogate().train(
@@ -44,7 +44,9 @@ def run_pipeline(
     )
     
     # 3. Density
-    rho_exp = rom_density(M, h, M[0], rho_0, rho_fluid)
+    # Effective reference derived from measured mass, not an independent wet
+    # density measurement. Thickness does not enter the retained mixture law.
+    rho_exp = rom_density(M, h, M[0], rho_0, rho_fluid, h0=h[0])
     dens_model = DensitySurrogate()
     dens_res = dens_model.train(
         t, mass_res.pred_hybrid, thick_res.pred_hybrid, mass_res.pred_pure, thick_res.pred_pure, 

@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="figure7-pipeline" name="Figure 7">
+    <mxGraphModel dx="1260" dy="490" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1260" pageHeight="490" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="mass" value="&lt;div style=&quot;font-size:23px;font-weight:bold;margin-bottom:9px&quot;&gt;Mass&lt;/div&gt;&lt;div style=&quot;line-height:1.4&quot;&gt;RF + Fickian series&lt;br&gt;Validation-selected blending&lt;/div&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F3F3F3;strokeColor=#444444;strokeWidth=2;fontColor=#111111;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="20" y="75" width="330" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="thickness" value="&lt;div style=&quot;font-size:23px;font-weight:bold;margin-bottom:9px&quot;&gt;Thickness&lt;/div&gt;&lt;div style=&quot;line-height:1.4&quot;&gt;Mass-based RF + swelling&lt;br&gt;Validation-selected blending&lt;/div&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F3F3F3;strokeColor=#444444;strokeWidth=2;fontColor=#111111;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="455" y="75" width="330" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="density" value="&lt;div style=&quot;font-size:23px;font-weight:bold;margin-bottom:9px&quot;&gt;Effective density&lt;/div&gt;&lt;div style=&quot;line-height:1.4&quot;&gt;ρ(t) = [1 − w(t)] ρ&lt;sub&gt;0&lt;/sub&gt; + w(t) ρ&lt;sub&gt;water&lt;/sub&gt;&lt;br&gt;w(t) = max[0, (M(t) − M&lt;sub&gt;0&lt;/sub&gt;)/M(t)]&lt;/div&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F3F3F3;strokeColor=#444444;strokeWidth=2;fontColor=#111111;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="890" y="75" width="330" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="velocity" value="&lt;div style=&quot;font-size:23px;font-weight:bold;margin-bottom:9px&quot;&gt;S0 group velocity&lt;/div&gt;&lt;div style=&quot;line-height:1.4&quot;&gt;Time-based Random Forest&lt;br&gt;Supplied dispersion anchors&lt;/div&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F3F3F3;strokeColor=#444444;strokeWidth=2;fontColor=#111111;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="20" y="350" width="330" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="proxy" value="&lt;div style=&quot;font-size:23px;font-weight:bold;margin-bottom:9px&quot;&gt;Stiffness proxy&lt;/div&gt;&lt;div style=&quot;line-height:1.4&quot;&gt;S(t) = ρ(t) c&lt;sub&gt;g&lt;/sub&gt;(t)&lt;sup&gt;2&lt;/sup&gt;&lt;br&gt;Approximate augmentation labels&lt;/div&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F3F3F3;strokeColor=#444444;strokeWidth=2;fontColor=#111111;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;spacing=8;fillColor=#FFFFFF;dashed=1;dashPattern=5 3;" vertex="1" parent="1">
+          <mxGeometry x="455" y="350" width="330" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="modulus" value="&lt;div style=&quot;font-size:23px;font-weight:bold;margin-bottom:9px&quot;&gt;Tensile modulus&lt;/div&gt;&lt;div style=&quot;line-height:1.4&quot;&gt;Time-based Random Forest&lt;br&gt;Measured tensile + proxy labels&lt;/div&gt;" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F3F3F3;strokeColor=#444444;strokeWidth=2;fontColor=#111111;fontFamily=Arial;fontSize=20;align=center;verticalAlign=middle;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="890" y="350" width="330" height="125" as="geometry"/>
+        </mxCell>
+        <mxCell id="mass-thickness" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#444444;strokeWidth=2;endArrow=block;endFill=1;fontFamily=Arial;fontSize=18;fontColor=#111111;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="mass" target="thickness">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="mass-density" value="Mass" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#444444;strokeWidth=2;endArrow=block;endFill=1;fontFamily=Arial;fontSize=18;fontColor=#111111;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=0;entryX=0.5;entryY=0;" edge="1" parent="1" source="mass" target="density">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="185" y="25"/>
+              <mxPoint x="1055" y="25"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="density-proxy" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#444444;strokeWidth=2;endArrow=block;endFill=1;fontFamily=Arial;fontSize=18;fontColor=#111111;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="density" target="proxy">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1055" y="275"/>
+              <mxPoint x="620" y="275"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="velocity-proxy" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#444444;strokeWidth=2;endArrow=block;endFill=1;fontFamily=Arial;fontSize=18;fontColor=#111111;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="velocity" target="proxy">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="proxy-modulus" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#444444;strokeWidth=2;endArrow=block;endFill=1;fontFamily=Arial;fontSize=18;fontColor=#111111;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="proxy" target="modulus">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

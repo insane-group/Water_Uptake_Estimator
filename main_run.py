@@ -1,16 +1,12 @@
-# main_run.py
+"""Recorded observations and entry point for the three manuscript configurations."""
+import argparse
+import json
 import numpy as np
 from pi_pipeline import run_pipeline
-from pi_plots import plot_all
-from pi_surrogates import PISpec1D, fit_alpha_from_cases
+from pi_surrogates import PISpec1D, fit_alpha_from_cases, rom_density
+from repo_io import output_directory
 
-# main_run.py
-import numpy as np
-from pi_pipeline import run_pipeline
-from pi_plots import plot_all, plot_test_evaluations
-from pi_surrogates import PISpec1D, fit_alpha_from_cases
-
-# --- HISTORICAL EXPERIMENTAL DATA (For STD calculation) ---
+# Recorded case histories; Case 5 is the target history.
 all_cases = [
     { # Case 1
         "time": np.array([0,18,42,66,90], float),
@@ -44,7 +40,8 @@ cg_data = {"hour": np.array([0, 24, 90, 180, 270, 360, 528], float), "gv_ms": np
 E_data = {"hour": np.array([0, 24, 90, 180, 270, 360, 528], float), "E_GPa": np.array([6.479, 4.219, 3.269, 2.757, 2.773, 2.185, 2.187], float)}
 
 
-# --- NEW: UNSEEN TEST SET FOR PARITY EVALUATION ---
+# Five reserved observations from the same batch/parent panels.
+# These are record-level tests, not independent-panel validation.
 test_data = {
     "time": np.array([13, 40, 72, 120, 240], float),
     "mass": np.array([123.21, 126.47, 128.72, 130.7, 136.6], float),
@@ -53,7 +50,7 @@ test_data = {
     "E_GPa": np.array([5.01, 4.031, 3.561, 3.36, 2.55], float)
 }
 
-# --- CALCULATE EXPERIMENTAL UNCERTAINTY (STD) MARGINS ---
+# Optional descriptive variability across case histories; not measurement uncertainty.
 def compute_std(t_eval, cases, key):
     diffs = []
     for c in cases:
@@ -70,8 +67,8 @@ def compute_rho_std(t_eval, cases, rho_dry=1150.0, rho_fluid=1000.0):
     diffs = []
     for c in cases:
         M = np.array(c["mass"])
-        w = np.maximum(0.0, (M - M[0]) / np.maximum(M, 1e-12))
-        rho = (1 - w) * rho_dry + w * rho_fluid
+        h = np.asarray(c["thick"], float)
+        rho = rom_density(M, h, M[0], rho_dry, rho_fluid, h0=h[0])
         diffs.append(np.interp(t_eval, c["time"], rho - rho[0], right=np.nan))
     with np.errstate(invalid='ignore'): std_val = np.nanstd(np.array(diffs), axis=0)
     valid_mask = ~np.isnan(std_val) & (std_val > 0)
@@ -79,65 +76,75 @@ def compute_rho_std(t_eval, cases, rho_dry=1150.0, rho_fluid=1000.0):
     std_val[np.isnan(std_val)] = 0.0
     return std_val
 
-exp_stds = {
-    "mass": compute_std(case5["time"], all_cases, "mass"),
-    "thick": compute_std(case5["time"], all_cases, "thick"),
-    "dens": compute_rho_std(case5["time"], all_cases)
-}
 
-# --- PIPELINE CONFIGURATION ---
-""" #Even configuration
-cg_comp_hours = np.array([9.47, 18.94, 47.36, 360]) #np.array([50, 150, 300, 450])
-cg_comp_vals = np.array([2208, 1996, 1776, 1300]) #np.array([2000, 1550, 1350, 1310]) 
+CONFIGURATIONS = ('even_three', 'early_three', 'active_three_vs_seven')
 
-pi_mass  = PISpec1D(np.array([150, 300]), pi_percent=1.0)
-pi_thick = PISpec1D(np.array([50, 150]), pi_percent=1.0)
-pi_cg    = PISpec1D(cg_comp_hours, values=cg_comp_vals, pi_percent=1.0) 
-pi_E     = PISpec1D(np.array([ 10, 50, 200, 400]), pi_percent=1.0)
 
-#even - manual
-mass_cfg  = dict(mass_mode="even", mass_n=3)
-thick_cfg = dict(thick_mode="even", thick_n=3) #thick_idx=[0, 5, 11]
-cg_cfg    = dict(cg_mode="even", cg_n=3) #cg_idx=[1, 2, 4, 6]
-E_cfg     = dict(E_mode="even", E_n=3) #E_idx=[0, 2, 6]
+def run_configuration(name='active_three_vs_seven'):
+    """Reproduce the original fit; reserved test labels are not passed to fitting.
 
-"""
-    #Initial configuration
-cg_comp_hours = np.array([9.47, 47.36, 270, 360, 528]) #np.array([50, 150, 300, 450])
-cg_comp_vals = np.array([2208, 1776, 1360, 1330, 1320]) #np.array([2000, 1550, 1350, 1310]) 
+    Full-history alpha and supplied wave anchors retain their original broader
+    development-data access. The main README explains this evaluation scope.
+    """
+    if name not in CONFIGURATIONS:
+        raise ValueError(f'Unknown configuration: {name}')
+    even = name == 'even_three'
+    cfg = dict(mass_mode='even', mass_n=3, thick_mode='even', thick_n=3,
+               cg_mode='even', cg_n=3, E_mode='even', E_n=3) if even else dict(
+        mass_mode='manual', mass_idx=[0,4,8], thick_mode='manual', thick_idx=[0,4,8],
+        cg_mode='manual', cg_idx=[0,1,2], E_mode='manual', E_idx=[0,1,2])
+    if name == 'active_three_vs_seven':
+        for prop in ['mass', 'thick', 'cg', 'E']:
+            cfg.update({f'{prop}_pure_mode':'even', f'{prop}_pure_n':7})
+    return run_pipeline(case=case5, all_cases_for_alpha=[case5],
+        fixed_alpha=fit_alpha_from_cases([case5]), **cfg,
+        pi_mass=PISpec1D(np.array([150,300])), pi_w_mass=2.,
+        pi_thick=PISpec1D(np.array([50,150] if even else [250,300])), pi_w_thick=2.,
+        cg_case=cg_data, pi_cg=PISpec1D(
+            np.array([9.47,18.94,47.36,360] if even else [9.47,47.36,270,360,528]),
+            values=np.array([2208,1996,1776,1300] if even else [2208,1776,1360,1330,1320])), pi_w_cg=2.,
+        E_case=E_data, pi_E=PISpec1D(np.array([10,50,200,400] if even else [10,20,200,400])), pi_w_E=2.,
+        rho_0=1150., rho_fluid=1000.)
 
-pi_mass  = PISpec1D(np.array([150, 300]), pi_percent=1.0)
-pi_thick = PISpec1D(np.array([250, 300]), pi_percent=1.0)
-pi_cg    = PISpec1D(cg_comp_hours, values=cg_comp_vals, pi_percent=1.0) 
-pi_E     = PISpec1D(np.array([ 10, 20, 200, 400]), pi_percent=1.0)
 
-#even - manual
-mass_cfg  = dict(mass_mode="manual", mass_idx=[0, 4, 8], mass_pure_mode="even", mass_pure_n=7)
-thick_cfg = dict(thick_mode="manual", thick_idx=[0, 4, 8], thick_pure_mode="even", thick_pure_n=7)
-cg_cfg    = dict(cg_mode="manual", cg_idx=[0, 1, 2], cg_pure_mode="even", cg_pure_n=7)
-E_cfg     = dict(E_mode="manual", E_idx=[0, 1, 2], E_pure_mode="even", E_pure_n=7)
-#"""
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--configuration', choices=CONFIGURATIONS, default='active_three_vs_seven')
+    parser.add_argument('--output-dir', help='Generated files (default: results/<configuration>)')
+    parser.add_argument('--no-show', action='store_true', help='Save figures without opening windows')
+    parser.add_argument('--no-plots', action='store_true', help='Write numerical results only')
+    parser.add_argument('--case-variability', action='store_true', help='Add descriptive case-history SD shading')
+    args=parser.parse_args()
+    out=run_configuration(args.configuration)
+    folder=output_directory(args.output_dir or output_directory()/args.configuration)
+    props=['mass','thick','dens','cg','youngs']
+    record={'configuration':args.configuration, 'alpha_full_history':out.alpha,
+            'blending':{'mass':out.mass.lambda_star, 'thick':out.thick.lambda_star},
+            'time_h':out.mass.t.tolist(), 'predictions':{}, 'development_mae':{}, 'test_mae':{}}
+    for prop in props:
+        res=getattr(out,prop)
+        record['predictions'][prop]={k:getattr(res,'pred_'+v).tolist() for k,v in [('pure','pure'),('physics','phys'),('hybrid','hybrid')]}
+        record['development_mae'][prop]={'pure':res.mae_pure,'hybrid':res.mae_val}
+    for prop,key in [('mass','mass'),('thick','thick'),('cg','gv_ms'),('youngs','E_GPa')]:
+        res=getattr(out,prop)
+        record['test_mae'][prop]={k:float(np.mean(np.abs(np.interp(test_data['time'],res.t,getattr(res,'pred_'+k))-test_data[key]))) for k in ['pure','hybrid']}
+    record['score_scope']='Development scores include tuning scores and (for seven-point wave/modulus RF) training errors; tests share batch/parent panels.'
+    (folder/'core_results.json').write_text(json.dumps(record,indent=2)+'\n',encoding='utf-8')
+    print('Five-record test MAEs:',json.dumps(record['test_mae'],indent=2))
+    print(f'Results: {folder}')
+    if not args.no_plots:
+        if args.no_show:
+            import matplotlib
+            matplotlib.use('Agg')
+        from pi_plots import plot_all, plot_test_evaluations
+        stds=None
+        if args.case_variability:
+            stds={'mass':compute_std(case5['time'],all_cases,'mass'),
+                  'thick':compute_std(case5['time'],all_cases,'thick'),
+                  'dens':compute_rho_std(case5['time'],all_cases)}
+        plot_all(out,case5,cg_data,E_data,exp_stds=stds,output_dir=folder,show=not args.no_show)
+        plot_test_evaluations(out,test_data,output_dir=folder,show=not args.no_show)
 
-alpha_global = fit_alpha_from_cases([case5])
 
-print("Running Pipeline...")
-out = run_pipeline(
-    case=case5, all_cases_for_alpha=[case5], fixed_alpha=alpha_global, #all_cases_for_alpha=all_cases,
-    **mass_cfg, pi_mass=pi_mass, pi_w_mass=2.0,
-    **thick_cfg, pi_thick=pi_thick, pi_w_thick=2.0,
-    cg_case=cg_data, **cg_cfg, pi_cg=pi_cg, pi_w_cg=2.0,
-    E_case=E_data, **E_cfg, pi_E=pi_E, pi_w_E=2.0,
-    rho_0=1150.0, rho_fluid=1000.0
-)
-
-print(f"\nRESULTS (Pure vs Hybrid MAE):")
-print(f"Mass:   Pure={out.mass.mae_pure:.4f} | Hybrid={out.mass.mae_val:.4f}")
-print(f"Thick:  Pure={out.thick.mae_pure:.4f} | Hybrid={out.thick.mae_val:.4f}")
-print(f"Dens:   Pure={out.dens.mae_pure:.4f} | Hybrid={out.dens.mae_val:.4f}")
-print(f"CG:     Pure={out.cg.mae_pure:.4f} | Hybrid={out.cg.mae_val:.4f}")
-print(f"Youngs: Pure={out.youngs.mae_pure:.4f} | Hybrid={out.youngs.mae_val:.4f}")
-
-plot_all(out, case5, cg_data, E_data, prefix="Case 5", exp_stds=exp_stds)
-
-# 2. Plot Parity Evaluation (Test Set)
-plot_test_evaluations(out, test_data)
+if __name__ == '__main__':
+    main()

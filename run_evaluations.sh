@@ -1,19 +1,10 @@
-#! /bin/bash
-
-metrics=("mae" "mse")
-target_properties=("mass" "thickness" "e1")
-regressors=("linear" "ridge" "sgd" "svr" "tree" "forest" "xgb")
-
-for regressor in "${regressors[@]}"; do
-
-    for metric in "${metrics[@]}"; do
-
-        for target_property in "${target_properties[@]}"; do
-
-            python ./estimator.py -m $regressor -t $target_property -e $metric
-
-        done
-
-    done
-
-done
+#!/usr/bin/env bash
+# Run from any directory. The full uncertainty run fits 1536 conditional trials.
+set -euo pipefail
+cd -- "$(dirname -- "$0")"
+PYTHON="${PYTHON:-python}"
+"$PYTHON" main_run.py --no-show
+"$PYTHON" revision_baselines.py
+"$PYTHON" revision_ablations.py
+"$PYTHON" revision_uncertainty.py
+"$PYTHON" -m unittest -v test_reproduction
